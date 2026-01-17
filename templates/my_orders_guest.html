@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block body_class %}centered{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h1>My Orders</h1>
+
+  <div class="panel">
+    <h2 class="sub">Find Your Active Order</h2>
+    <form class="form-vertical" method="post">
+      <label>Order ID</label>
+      <input type="text" name="order_id" required placeholder="e.g. O412 or UUID...">
+
+      <label>Email</label>
+      <input type="email" name="email" required placeholder="example@mail.com">
+
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  {% if order %}
+  <div class="panel">
+    <h2 class="sub">Order Summary</h2>
+
+    <div class="small-note"><b>Order ID:</b> {{ order.O_ID }}</div>
+    <div class="small-note"><b>Order Date:</b> {{ order.O_DATE }}</div>
+    <div class="small-note"><b>Name:</b> {{ order.E_FIRST_NAME }} {{ order.E_LAST_NAME }}</div>
+
+    <hr class="sep-line">
+
+    <div class="small-note"><b>Flight:</b> {{ order.FLIGHT_NUM }} ({{ order.ORIGIN }} → {{ order.DESTINATION }})</div>
+    <div class="small-note"><b>Departure:</b> {{ order.DEPARTURE_DATE }} {{ order.DEPARTURE_TIME }}</div>
+    <div class="small-note"><b>Arrival:</b> {{ order.ARRIVAL_DATE }} {{ order.ARRIVAL_TIME }}</div>
+    <div class="small-note"><b>Total Price:</b> {{ "{:,.2f}".format(order.ORDER_PRICE) }}$</div>
+
+    <hr class="sep-line">
+
+    <div class="small-note"><b>Seats:</b></div>
+
+    {% if order.seats is defined and order.seats %}
+      <ul class="summary-list">
+        {% for s in order.seats %}
+          <li><b>{{ s.seat_code }}</b> — {{ s.seat_class }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="small-note">No seats found for this order.</div>
+    {% endif %}
+
+    <a class="btn-danger btn-small"
+       href="{{ url_for('cancel_order', order_id=order.O_ID) }}">
+       Cancel Order
+    </a>
+
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

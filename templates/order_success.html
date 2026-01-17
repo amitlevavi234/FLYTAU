@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Order Confirmed </h1>
+
+  <div class="panel">
+    <h2 class="sub">Order Details</h2>
+    <div class="small-note">Order ID: <b>{{ order_id }}</b></div>
+    <div class="small-note">
+      Flight <b>{{ flight.FLIGHT_NUM }}</b> | {{ flight.ORIGIN }} → {{ flight.DESTINATION }}
+    </div>
+    <div class="small-note">
+      Total Paid: <b>{{ "%.2f"|format(total_price) }}$</b>
+    </div>
+  </div>
+
+
+
+{% endblock %}

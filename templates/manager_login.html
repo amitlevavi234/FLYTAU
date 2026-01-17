@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body_class %}centered{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h1>Manager Login</h1>
+
+  <form method="post">
+    <label>Manager ID</label>
+    <input type="text" name="manager_id" required>
+
+    <label>Password</label>
+    <input type="password" name="password" required>
+
+    <button type="submit">Log in</button>
+  </form>
+  <div class="links">
+  <a href="{{ url_for('login') }}">Back to Main Login</a>
+  </div>
+</div>
+
+
+{% endblock %}

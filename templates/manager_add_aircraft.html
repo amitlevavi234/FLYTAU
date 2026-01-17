@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Add Aircraft</h1>
+  <p class="muted">Add a new aircraft to the fleet.</p>
+
+  <form method="POST" action="{{ url_for('manager_add_aircraft') }}" class="grid">
+    <div>
+      <label>Aircraft ID</label>
+      <input name="aircraft_id" placeholder="e.g. AC010" required>
+    </div>
+
+    <div>
+      <label>Size</label>
+      <select id="sizeSelect" name="size" required>
+        <option value="">Select...</option>
+        <option value="BIG">BIG</option>
+        <option value="SMALL">SMALL</option>
+      </select>
+      <div id="smallHint" class="small-note" style="display:none;">
+        SMALL aircraft supports Economy only (Business seats will be 0).
+      </div>
+    </div>
+
+    <div>
+      <label>Manufacturer</label>
+      <select name="manufacturer" required>
+        <option value="">Select...</option>
+        <option value="Boeing">Boeing</option>
+        <option value="Airbus">Airbus</option>
+        <option value="Dassault">Dassault</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Purchase Date</label>
+      <input type="date" name="purchase_date" required>
+    </div>
+
+    <div>
+      <label>Business Seats</label>
+      <input id="capBusiness" name="cap_business" placeholder="e.g. 20" required>
+    </div>
+
+    <div>
+      <label>Economy Seats</label>
+      <input name="cap_economy" placeholder="e.g. 180" required>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Save</button>
+      <a class="btn-secondary" href="{{ url_for('manager_flights') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const sizeSelect = document.getElementById("sizeSelect");
+  const capBusiness = document.getElementById("capBusiness");
+  const smallHint = document.getElementById("smallHint");
+
+  function applySizeRules(){
+    const v = (sizeSelect.value || "").toUpperCase();
+    if(v === "SMALL"){
+      capBusiness.value = "0";
+      capBusiness.readOnly = true;
+      capBusiness.style.opacity = "0.7";
+      smallHint.style.display = "block";
+    } else {
+      capBusiness.readOnly = false;
+      capBusiness.style.opacity = "1";
+      smallHint.style.display = "none";
+      if(capBusiness.value === "0") capBusiness.value = "";
+    }
+  }
+
+  sizeSelect.addEventListener("change", applySizeRules);
+  applySizeRules();
+</script>
+
+{% endblock %}

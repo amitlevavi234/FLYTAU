@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Checkout</h1>
+
+  <div class="panel">
+    <h2 class="sub">Flight Summary</h2>
+    <div class="small-note">
+      Flight <b>{{ flight.FLIGHT_NUM }}</b> | {{ flight.ORIGIN }} → {{ flight.DESTINATION }}
+    </div>
+    <div class="small-note">
+      Departure: <b>{{ flight.DEPARTURE_DATE }} {{ flight.DEPARTURE_TIME }}</b>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="sub">Selected Seats</h2>
+    <ul class="summary-list">
+      {% for s in seat_details %}
+        <li>
+          <b>{{ s.code }}</b> — {{ s.class }} — {{ "%.2f"|format(s.price) }}
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="total-line">
+      Total Price: <b>{{ "%.2f"|format(total_price) }}$</b>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="sub">Passenger Details</h2>
+<form class="form-vertical" method="post">
+
+  {% if user_type == "guest" %}
+      <label>Email</label>
+      <input type="email" name="email" required placeholder="example@mail.com">
+
+      <label>First Name (English)</label>
+      <input type="text" name="first_name" required placeholder="John">
+
+      <label>Last Name (English)</label>
+      <input type="text" name="last_name" required placeholder="Smith">
+
+      <label>Phone Numbers (digits only, 9–10 digits, one per line)</label>
+        <textarea name="phones" rows="3" required
+                  placeholder="0501234567&#10;0529876543"></textarea>
+
+
+  {% else %}
+      <label>Email</label>
+      <input type="email" name="email" required value="{{ auto_email or '' }}">
+
+      <label>First Name (English)</label>
+      <input type="text" name="first_name" required value="{{ auto_first or '' }}">
+
+      <label>Last Name (English)</label>
+      <input type="text" name="last_name" required value="{{ auto_last or '' }}">
+
+      <label>Passport Number</label>
+      <input type="text" name="passport_num" required value="{{ auto_passport or '' }}">
+
+      <label>Date of Birth</label>
+      <input type="date" name="birth_date" required value="{{ auto_birth }}">
+  {% endif %}
+
+    <button type="submit">Confirm Order</button>
+  </form>
+    </div>
+
+      <div class="links">
+        <a href="{{ url_for('flight_search') }}">Back to Flight Search</a>
+      </div>
+
+</div>
+
+{% endblock %}

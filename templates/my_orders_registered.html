@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>My Orders</h1>
+
+  <div class="panel">
+    <h2 class="sub">Filter</h2>
+    <form method="get" class="form-vertical">
+      <label>Order Status</label>
+      <select name="status">
+        <option value="" {% if not selected_status %}selected{% endif %}>All</option>
+        <option value="ACTIVE" {% if selected_status=='ACTIVE' %}selected{% endif %}>ACTIVE</option>
+        <option value="COMPLETED" {% if selected_status=='COMPLETED' %}selected{% endif %}>COMPLETED</option>
+        <option value="CUSTOMER_CANCELLED" {% if selected_status=='CUSTOMER_CANCELLED' %}selected{% endif %}>CUSTOMER_CANCELLED</option>
+        <option value="SYSTEM_CANCELLED" {% if selected_status=='SYSTEM_CANCELLED' %}selected{% endif %}>SYSTEM_CANCELLED</option>
+      </select>
+      <button type="submit">Apply</button>
+    </form>
+  </div>
+
+  {% if not orders %}
+    <div class="panel">
+      <div class="small-note">No orders found.</div>
+    </div>
+  {% endif %}
+
+<div class="panel">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th class="status-cell">Status</th>
+          <th>Flight</th>
+          <th>Route</th>
+          <th>Departure</th>
+          <th>Arrival</th>
+          <th>Seats</th>
+          <th>Price</th>
+          <th>Order Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>{{ o.O_ID }}</td>
+          <td class="status-cell">
+            {% if o.O_STATUS == "CUSTOMER_CANCELLED" %}
+              Customer Cancelled
+            {% elif o.O_STATUS == "SYSTEM_CANCELLED" %}
+              System Cancelled
+            {% elif o.O_STATUS == "COMPLETED" %}
+              Completed
+            {% elif o.O_STATUS == "ACTIVE" %}
+              Active
+            {% else %}
+              {{ o.O_STATUS }}
+            {% endif %}
+          </td>
+
+          <td>{{ o.FLIGHT_NUM }}</td>
+          <td>{{ o.ORIGIN }} → {{ o.DESTINATION }}</td>
+          <td>{{ o.DEPARTURE_DATE }} {{ o.DEPARTURE_TIME }}</td>
+          <td>{{ o.ARRIVAL_DATE }} {{ o.ARRIVAL_TIME }}</td>
+          <td>{{ o.seat_count }}<br><span class="small-note">{{ o.seat_summary }}</span></td>
+          <td>{{ "%.2f"|format(o.ORDER_PRICE) }}$</td>
+          <td>{{ o.O_DATE }}</td>
+          <td>
+            {% if o.O_STATUS == "ACTIVE" %}
+              <a class="btn-danger btn-small"
+                 href="{{ url_for('cancel_order', order_id=o.O_ID) }}">
+                 Cancel Order
+              </a>
+
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+{% endblock %}

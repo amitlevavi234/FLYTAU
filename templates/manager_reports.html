@@ -1,0 +1,601 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  /* ===== Reports page layout ===== */
+  .reports-header{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .reports-title{
+    text-align:center;
+    margin: 6px 0 0;
+    font-size: 26px;
+    letter-spacing: 0.2px;
+  }
+  .reports-subtitle{
+    text-align:center;
+    color: var(--muted);
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Tabs row - FORCE ONE LINE */
+  .report-tabs{
+    display:flex;
+    gap:10px;
+    flex-wrap: nowrap;     /* ✅ שורה אחת */
+    justify-content:center;
+    align-items:center;
+    margin: 8px 0 12px;
+    overflow-x: auto;      /* ✅ אם מסך צר */
+    padding-bottom: 6px;
+  }
+
+  .report-tab{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #0f172a;
+    text-decoration:none;
+    font-weight: 800;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: 0 8px 16px rgba(15,23,42,0.06);
+    transition: 0.15s ease-in-out;
+  }
+  .report-tab:hover{ transform: translateY(-1px); background:#f1f5f9; }
+  .report-tab.active{
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    color:#fff;
+    border:0;
+  }
+
+  /* sections */
+  .report-section{
+    display:none;
+    margin-top: 10px;
+  }
+  .report-section.show{
+    display:block;
+  }
+
+  .filters-box{
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    padding: 14px;
+    margin-top: 12px;
+  }
+
+  /* 2 columns filters */
+  .filters-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 10px 14px;
+  }
+  @media (min-width: 760px){
+    .filters-grid{
+      grid-template-columns: repeat(2, 1fr);
+      align-items:end;
+    }
+  }
+
+  /* 3 columns filters (when needed) */
+  .filters-grid-3{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 10px 14px;
+  }
+  @media (min-width: 900px){
+    .filters-grid-3{
+      grid-template-columns: repeat(3, 1fr);
+      align-items:end;
+    }
+  }
+
+  .filters-actions{
+    display:flex;
+    gap:12px;
+    justify-content:flex-start;
+    align-items:center;
+    margin-top: 12px;
+    flex-wrap:wrap;
+  }
+
+  /* ✅ Apply + Clear same height */
+  .filters-actions .btn-apply,
+  .filters-actions .btn-secondary{
+    height: 44px;
+    padding: 0 18px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:auto;
+    margin-top:0;
+  }
+  .filters-actions .btn-apply{ min-width:140px; }
+  .filters-actions .btn-secondary{ min-width:140px; }
+
+  /* ===== Report 1 gauge ===== */
+  .gauge-wrap{
+    display:flex;
+    justify-content:center;
+    margin-top: 18px;
+  }
+  .gauge{
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: conic-gradient(#2563eb calc(var(--p) * 1%), #e5e7eb 0);
+    position: relative;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  }
+  .gauge-center{
+    position:absolute;
+    inset: 18px;
+    background: #fff;
+    border-radius: 50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    border: 1px solid rgba(226,232,240,0.9);
+  }
+  .gauge-value{
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+  .gauge-label{
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 800;
+  }
+  .gauge-hint{
+    margin-top: 10px;
+    text-align:center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* make tables always fit */
+  .table-wrap{ overflow-x:auto; }
+  .table th, .table td{ white-space: normal; }
+
+  /* small helper */
+  .pill-note{
+    display:inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    color:#334155;
+    font-weight: 700;
+    font-size: 12px;
+  }
+</style>
+
+<div class="card" style="margin: 0 auto;">
+  <div class="reports-header">
+    <h1 class="reports-title">Management Reports</h1>
+    <p class="reports-subtitle">Choose a report, apply filters, and review the results.</p>
+  </div>
+
+  <!-- Tabs -->
+  {% set current = active_report if active_report else 'r1' %}
+  <div class="report-tabs">
+    <a class="report-tab {{ 'active' if current=='r1' else '' }}" href="{{ url_for('manager_reports', active_report='r1') }}">Avg Occupancy</a>
+    <a class="report-tab {{ 'active' if current=='r2' else '' }}" href="{{ url_for('manager_reports', active_report='r2') }}">Revenue Breakdown</a>
+    <a class="report-tab {{ 'active' if current=='r3' else '' }}" href="{{ url_for('manager_reports', active_report='r3') }}">Employee Flight Hours</a>
+    <a class="report-tab {{ 'active' if current=='r4' else '' }}" href="{{ url_for('manager_reports', active_report='r4') }}">Monthly Cancellation Rate</a>
+    <a class="report-tab {{ 'active' if current=='r5' else '' }}" href="{{ url_for('manager_reports', active_report='r5') }}">Monthly Fleet Summary</a>
+  </div>
+
+  <!-- ========================= REPORT 1 ========================= -->
+  <div id="r1" class="report-section {% if current=='r1' %}show{% endif %}">
+    <div class="panel">
+      <h2 class="sub">Average Occupancy of Completed Flights</h2>
+      <p class="small-note">
+        By default, this shows the average occupancy across <b>all completed flights</b>.
+        Use dates to narrow the range.
+      </p>
+
+      <div class="filters-box">
+        <form method="get" action="{{ url_for('manager_reports') }}">
+          <input type="hidden" name="active_report" value="r1">
+
+          <div class="filters-grid">
+            <div>
+              <label>From Date</label>
+              <input type="date" name="r1_from" value="{{ r1_from or '' }}">
+            </div>
+            <div>
+              <label>To Date</label>
+              <input type="date" name="r1_to" value="{{ r1_to or '' }}">
+            </div>
+          </div>
+
+          <div class="filters-actions">
+            <button class="btn-apply" type="submit">Apply</button>
+            <a class="btn-secondary" href="{{ url_for('manager_reports', active_report='r1') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      {% set occ = (r1_avg * 100) if r1_avg is not none else none %}
+      <div class="gauge-wrap">
+        <div class="gauge" style="--p: {{ (occ|round(0)) if occ is not none else 0 }};">
+          <div class="gauge-center">
+            <div class="gauge-value">
+              {% if occ is not none %}
+                {{ "%.0f"|format(occ) }}%
+              {% else %}
+                —
+              {% endif %}
+            </div>
+            <div class="gauge-label">Avg Occupancy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gauge-hint">
+        {% if r1_from or r1_to %}
+          Based on completed flights in the selected date range.
+        {% else %}
+          Based on all completed flights to date.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= REPORT 2 ========================= -->
+  <div id="r2" class="report-section {% if current=='r2' %}show{% endif %}">
+    <div class="panel">
+      <h2 class="sub">Revenue by Aircraft Size, Manufacturer, and Class</h2>
+      <p class="small-note">Optional filters. If nothing is selected, all results are shown.</p>
+
+      <div class="filters-box">
+        <form method="get" action="{{ url_for('manager_reports') }}">
+          <input type="hidden" name="active_report" value="r2">
+
+          <div class="filters-grid-3">
+            <div>
+              <label>From Date</label>
+              <input type="date" name="r2_from" value="{{ r2_from or '' }}">
+            </div>
+            <div>
+              <label>To Date</label>
+              <input type="date" name="r2_to" value="{{ r2_to or '' }}">
+            </div>
+            <div>
+              <label>Class</label>
+              <select name="r2_class">
+                <option value="" {% if not r2_class %}selected{% endif %}>All</option>
+                <option value="ECONOMY" {% if r2_class=='ECONOMY' %}selected{% endif %}>ECONOMY</option>
+                <option value="BUSINESS" {% if r2_class=='BUSINESS' %}selected{% endif %}>BUSINESS</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Manufacturer</label>
+              <select name="r2_manufacturer">
+                <option value="" {% if not r2_manufacturer %}selected{% endif %}>All</option>
+                <option value="Boeing" {% if r2_manufacturer=='Boeing' %}selected{% endif %}>Boeing</option>
+                <option value="Airbus" {% if r2_manufacturer=='Airbus' %}selected{% endif %}>Airbus</option>
+                <option value="Dassault" {% if r2_manufacturer=='Dassault' %}selected{% endif %}>Dassault</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Aircraft Size</label>
+              <select name="r2_size">
+                <option value="" {% if not r2_size %}selected{% endif %}>All</option>
+                <option value="SMALL" {% if r2_size=='SMALL' %}selected{% endif %}>SMALL</option>
+                <option value="BIG" {% if r2_size=='BIG' %}selected{% endif %}>BIG</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Sort by Revenue</label>
+              <select name="r2_sort">
+                <option value="DESC" {% if (r2_sort or 'DESC')=='DESC' %}selected{% endif %}>High → Low</option>
+                <option value="ASC" {% if r2_sort=='ASC' %}selected{% endif %}>Low → High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filters-actions">
+            <button class="btn-apply" type="submit">Apply</button>
+            <a class="btn-secondary" href="{{ url_for('manager_reports', active_report='r2') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Size</th>
+              <th>Manufacturer</th>
+              <th>Class</th>
+              <th>Revenue $</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if r2_rows %}
+              {% for row in r2_rows %}
+              <tr>
+                <td>{{ row.SIZE }}</td>
+                <td>{{ row.MANUFACTURER }}</td>
+                <td>{{ row.CLASS }}</td>
+                <td>{{ "{:,.2f}".format(row.revenue or 0) }}</td> <!-- ✅ commas + 2 decimals -->
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="small-note">No data to display for the selected filters.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= REPORT 3 ========================= -->
+  <div id="r3" class="report-section {% if current=='r3' %}show{% endif %}">
+    <div class="panel">
+      <h2 class="sub">Employee Flight Hours (Completed Flights)</h2>
+      <p class="small-note">Filter by role, employee ID, and flight type. Sort total hours.</p>
+
+      <div class="filters-box">
+        <form method="get" action="{{ url_for('manager_reports') }}">
+          <input type="hidden" name="active_report" value="r3">
+
+          <div class="filters-grid-3">
+            <div>
+              <label>Role</label>
+              <select name="r3_role">
+                <option value="" {% if not r3_role %}selected{% endif %}>All</option>
+                <option value="PILOT" {% if r3_role=='PILOT' %}selected{% endif %}>PILOT</option>
+                <option value="ATTENDANT" {% if r3_role=='ATTENDANT' %}selected{% endif %}>ATTENDANT</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Employee ID (Search)</label>
+              <input type="text" name="r3_emp" placeholder="e.g. 212290241" value="{{ r3_emp or '' }}">
+            </div>
+
+            <div>
+              <label>Flight Type</label>
+              <select name="r3_flight_type">
+                <option value="" {% if not r3_flight_type %}selected{% endif %}>All</option>
+                <option value="SHORT" {% if r3_flight_type=='SHORT' %}selected{% endif %}>SHORT</option>
+                <option value="LONG" {% if r3_flight_type=='LONG' %}selected{% endif %}>LONG</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Sort by Hours</label>
+              <select name="r3_sort">
+                <option value="DESC" {% if (r3_sort or 'DESC')=='DESC' %}selected{% endif %}>High → Low</option>
+                <option value="ASC" {% if r3_sort=='ASC' %}selected{% endif %}>Low → High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filters-actions">
+            <button class="btn-apply" type="submit">Apply</button>
+            <a class="btn-secondary" href="{{ url_for('manager_reports', active_report='r3') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee Type</th>
+              <th>Employee ID</th>
+              <th>Flight Type</th>
+              <th>Total Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if r3_rows %}
+              {% for row in r3_rows %}
+              <tr>
+                <td>{{ row.employee_type }}</td>
+                <td>{{ row.employee_id }}</td>
+                <td>{{ row.flight_type }}</td>
+                <td>{{ row.total_hours }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="small-note">No data to display for the selected filters.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="r4" class="report-section {% if current=='r4' %}show{% endif %}">
+    <div class="panel">
+      <h2 class="sub">Customer Cancellation Rate by Month</h2>
+      <p class="small-note">
+        Filters are by <b>month and year only</b>
+        If no filters are selected, all months are shown.
+      </p>
+
+      <div class="filters-box">
+        <form method="get" action="{{ url_for('manager_reports') }}">
+          <input type="hidden" name="active_report" value="r4">
+
+          <div class="filters-grid-3">
+            <div>
+              <label>From</label>
+              <input type="month" name="r4_from" value="{{ r4_from or '' }}">
+            </div>
+            <div>
+              <label>To</label>
+              <input type="month" name="r4_to" value="{{ r4_to or '' }}">
+            </div>
+
+            <div>
+              <label>Sort by Rate</label>
+              <select name="r4_sort">
+                <option value="ASC" {% if (r4_sort or 'ASC')=='ASC' %}selected{% endif %}>Low → High</option>
+                <option value="DESC" {% if r4_sort=='DESC' %}selected{% endif %}>High → Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filters-actions">
+            <button class="btn-apply" type="submit">Apply</button>
+            <a class="btn-secondary" href="{{ url_for('manager_reports', active_report='r4') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Month</th>
+              <th>Cancel Rate (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if r4_rows %}
+              {% for row in r4_rows %}
+              <tr>
+                <td>{{ row.year }}</td>
+                <td>{{ row.month }}</td>
+                <td>{{ row.cancel_rate_percent }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="3" class="small-note">No data to display for the selected filters.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="r5" class="report-section {% if current=='r5' %}show{% endif %}">
+    <div class="panel">
+      <h2 class="sub">Monthly Fleet Activity Summary</h2>
+      <p class="small-note">
+        Filters are by month/year range (no days), aircraft ID, manufacturer, and dominant route (origin/destination).
+      </p>
+
+      <div class="filters-box">
+        <form method="get" action="{{ url_for('manager_reports') }}">
+          <input type="hidden" name="active_report" value="r5">
+
+          <div class="filters-grid-3">
+            <div>
+              <label>From</label>
+              <input type="month" name="r5_from" value="{{ r5_from or '' }}">
+            </div>
+            <div>
+              <label>To</label>
+              <input type="month" name="r5_to" value="{{ r5_to or '' }}">
+            </div>
+
+            <div>
+              <label>Aircraft ID</label>
+              <input type="text" name="r5_aircraft" placeholder="e.g. AC010" value="{{ r5_aircraft or '' }}">
+            </div>
+
+            <div>
+              <label>Manufacturer</label>
+              <select name="r5_manufacturer">
+                <option value="" {% if not r5_manufacturer %}selected{% endif %}>All</option>
+                <option value="Boeing" {% if r5_manufacturer=='Boeing' %}selected{% endif %}>Boeing</option>
+                <option value="Airbus" {% if r5_manufacturer=='Airbus' %}selected{% endif %}>Airbus</option>
+                <option value="Dassault" {% if r5_manufacturer=='Dassault' %}selected{% endif %}>Dassault</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Dominant Origin</label>
+              <input type="text" name="r5_origin" placeholder="e.g. Tel Aviv" value="{{ r5_origin or '' }}">
+            </div>
+
+            <div>
+              <label>Dominant Destination</label>
+              <input type="text" name="r5_destination" placeholder="e.g. London" value="{{ r5_destination or '' }}">
+            </div>
+          </div>
+
+          <div class="filters-actions">
+            <button class="btn-apply" type="submit">Apply</button>
+            <a class="btn-secondary" href="{{ url_for('manager_reports', active_report='r5') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Aircraft</th>
+              <th>Year</th>
+              <th>Month</th>
+              <th>Completed Flights</th>
+              <th>Cancelled Flights</th>
+              <th>Utilization (%)</th>
+              <th>Dominant Origin</th>
+              <th>Dominant Destination</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if r5_rows %}
+              {% for row in r5_rows %}
+              <tr>
+                <td>{{ row.AIRCRAFT_ID }}</td>
+                <td>{{ row.year }}</td>
+                <td>{{ row.month }}</td>
+                <td>{{ row.completed_flights }}</td>
+                <td>{{ row.cancelled_flights }}</td>
+                <td>{{ row.utilization_percent }}</td>
+                <td>{{ row.origin }}</td>
+                <td>{{ row.destination }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="8" class="small-note">No data to display for the selected filters.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="links" style="margin-top:16px;">
+    <a href="{{ url_for('manager_flights') }}">Back to Flight Board</a>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Add Employee</h1>
+  <p class="muted">Add a new Pilot / Flight Attendant (names must be in Hebrew).</p>
+
+  <form method="POST" action="{{ url_for('manager_add_staff') }}" class="grid">
+    <div>
+      <label>Role</label>
+      <select name="role" required>
+        <option value="">Select...</option>
+        <option value="pilot">Pilot</option>
+        <option value="attendant">Flight Attendant</option>
+      </select>
+    </div>
+
+    <div>
+      <label>ID (Teudat Zehut)</label>
+      <input name="emp_id" placeholder="e.g. 212290241" required>
+    </div>
+
+    <div>
+      <label>First Name (Hebrew)</label>
+      <input name="first_name" placeholder="לדוגמה: אייל" required>
+    </div>
+
+    <div>
+      <label>Last Name (Hebrew)</label>
+      <input name="last_name" placeholder="לדוגמה: כהן" required>
+    </div>
+
+    <div>
+      <label>Phone</label>
+      <input name="phone" placeholder="e.g. 050-1234567" required>
+    </div>
+
+    <div>
+      <label>City</label>
+      <input name="city" placeholder="e.g. Tel Aviv" required>
+    </div>
+
+    <div>
+      <label>Street</label>
+      <input name="street" placeholder="e.g. Dizengoff" required>
+    </div>
+
+    <div>
+      <label>House Number</label>
+      <input name="house_num" placeholder="e.g. 12" required>
+    </div>
+
+    <div>
+      <label>Start Date</label>
+      <input type="date" name="start_date" required>
+    </div>
+
+    <div>
+      <label>Long Flights Qualified?</label>
+      <select name="is_qualified" required>
+        <option value="">Select...</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+
+    <div class="form-actions" style="grid-column: 1 / -1;">
+      <button type="submit">Save</button>
+      <a class="btn-secondary" href="{{ url_for('manager_flights') }}">Cancel</a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

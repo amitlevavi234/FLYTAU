@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Add New Flight — Step 1</h1>
+
+  <div class="panel">
+    <h2 class="sub">Flight Details</h2>
+
+    <form class="form-vertical" method="post">
+      <label>Departure Date</label>
+      <input type="date" name="departure_date" required value="{{ chosen.dep_date if chosen else '' }}">
+
+      <label>Departure Time</label>
+      <input type="time" name="departure_time" required value="{{ chosen.dep_time if chosen else '' }}">
+
+      <label>Origin</label>
+      <input type="text" name="origin" required placeholder="e.g. TLV" value="{{ chosen.origin if chosen else '' }}">
+
+      <label>Destination</label>
+      <input type="text" name="destination" required placeholder="e.g. LHR" value="{{ chosen.destination if chosen else '' }}">
+
+      <button type="submit">Show Available Aircraft</button>
+    </form>
+  </div>
+
+  {% if aircrafts %}
+  <div class="panel" style="margin-top:16px;">
+    <h2 class="sub">Choose Aircraft (one)</h2>
+
+    <form method="post" action="{{ url_for('manager_new_flight_step2_aircraft') }}">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Aircraft</th>
+              <th>Size</th>
+              <th>Total Seats</th>
+              <th>Economy</th>
+              <th>Business</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in aircrafts %}
+            <tr>
+              <td><input type="radio" name="aircraft_id" value="{{ a.AIRCRAFT_ID }}" required></td>
+              <td>{{ a.AIRCRAFT_ID }}</td>
+              <td>{{ a.SIZE }}</td>
+              <td>{{ a.TOTAL_SEATS }}</td>
+              <td>{{ a.CAPACITY_ECONOMY }}</td>
+              <td>{{ a.CAPACITY_BUSINESS }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <button type="submit">Next</button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

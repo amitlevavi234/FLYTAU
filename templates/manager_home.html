@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Manager Home</h1>
+  <p>Hello, {{ session.first_name }}!</p>
+
+  <p>This is the manager home page. (We will add manager functions later.)</p>
+
+  <a class="btn-link" href="{{ url_for('logout') }}">Log out</a>
+</div>
+
+<div class="links">
+  <a href="{{ url_for('login') }}">Back to Main Login</a>
+</div>
+<div class="links">
+  <a href="{{ url_for('login') }}">Back to Main Login</a>
+</div>
+
+
+{% endblock %}

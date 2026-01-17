@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+
+<h1 CLASS="hero-slogan"> YOUR JOURNEY  BEGINS  HERE </h1>
+
+
+
+  <div class="panel">
+    <h2 class="sub">Flight Search</h2>
+
+    <form class="form-vertical form-grid" method="post" action="{{ url_for('flight_search') }}">
+
+      <div class="field">
+        <label for="departure_date">Departure Date</label>
+        <input id="departure_date" type="date" name="departure_date" required
+               value="{{ departure_date if departure_date else '' }}">
+      </div>
+
+      <div class="field">
+        <label for="passengers">Passengers</label>
+        <input id="passengers" type="number" name="passengers" required min="1"
+               placeholder="e.g., 2"
+               value="{{ passengers if passengers else '' }}">
+      </div>
+
+      <div class="field">
+        <label for="origin">Origin</label>
+        <input id="origin" type="text" name="origin" required
+               list="citiesList"
+               placeholder="e.g., Tel Aviv"
+               value="{{ origin if origin else '' }}">
+      </div>
+
+      <div class="field">
+        <label for="destination">Destination</label>
+        <input id="destination" type="text" name="destination" required
+               list="citiesList"
+               placeholder="e.g., London"
+               value="{{ destination if destination else '' }}">
+      </div>
+
+      <datalist id="citiesList">
+        {% for c in cities %}
+          <option value="{{ c }}"></option>
+        {% endfor %}
+      </datalist>
+
+      <button type="submit" class="full">Search</button>
+    </form>
+
+  </div>
+
+  {% if flights is not none %}
+    <div class="panel" style="margin-top: 18px;">
+      <h2 class="sub">Available Flights (Active)</h2>
+      <p class="small-note">Price shown is for <b>one Economy seat</b>.</p>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Flight #</th>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>Departure</th>
+              <th>Departure Time</th>
+              <th>Arrival Time</th>
+              <th>Duration</th>
+              <th>From (Economy)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in flights %}
+            <tr>
+              <td>{{ f.FLIGHT_NUM }}</td>
+              <td>{{ f.ORIGIN }}</td>
+              <td>{{ f.DESTINATION }}</td>
+              <td>{{ f.DEPARTURE_DATE }}</td>
+              <td>{{ f.DEPARTURE_TIME }}</td>
+              <td>{{ f.ARRIVAL_TIME }}</td>
+              <td>{{ f.DURATION }}</td>
+              <td>From {{ f.ECONOMY_PRICE }}$ (per seat)</td>
+              <td>
+
+                  <form method="get" action="{{ url_for('seat_select', flight_num=f.FLIGHT_NUM) }}">
+                    <input type="hidden" name="passengers" value="{{ passengers }}">
+                    <button class="btn-secondary" type="submit">Select</button>
+                  </form>
+
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="small-note">
+        Seat selection will be added in the next step.
+      </div>
+    </div>
+  {% endif %}
+
+
+
+
+{% endblock %}

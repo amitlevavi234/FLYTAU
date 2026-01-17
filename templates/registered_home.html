@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+
+  <h1>Registered User Home</h1>
+
+  <div class="small-note">
+    Welcome, {{ session.get('first_name', 'User') }} (Registered)
+  </div>
+
+  <div class="panel">
+    <h2 class="sub">Search Flights</h2>
+    <p class="small-note">Enter filters and press Search to view available active flights.</p>
+
+    <form class="form-vertical" method="get" action="{{ url_for('flight_search') }}">
+      <button type="submit">Go to Flight Search</button>
+    </form>
+  </div>
+
+
+</div>
+
+{% endblock %}

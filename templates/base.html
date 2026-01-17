@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "FLYTAU" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <main class="container {{ (container_size or "narrow") }}">
+    <div class="topbar">
+    <div class="topbar-left">
+      {% if session.get("user_type") == "manager" %}
+        <a class="toplink" href="{{ url_for('manager_flights') }}">   Flight Board</a>
+        <span class="sep">|</span>
+        <a class="toplink" href="{{ url_for('manager_reports') }}">Management Reports</a>
+        <span class="sep">|</span>
+        <a class="toplink" href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a class="toplink" href="{{ url_for('flight_search') }}">Home</a>
+        <span class="sep">|</span>
+        <a class="toplink" href="{{ url_for('my_orders') }}">My Orders</a>
+
+        {% if session.get("user_type") != "registered" %}
+          <span class="sep">|</span>
+          <a class="toplink" href="{{ url_for('login') }}">Login</a>
+          <span class="sep">|</span>
+          <a class="toplink" href="{{ url_for('register_user') }}">Sign up</a>
+        {% else %}
+          <span class="sep">|</span>
+          <a class="toplink" href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="topbar-right">
+        <img class="topbar-logo"
+       src="{{ url_for('static', filename='img/flytau_logo.png') }}"
+       alt="FLYTAU Logo">
+      {% if session.get("user_type") == "manager" %}
+        <span class="user-badge">Manager</span>
+
+      {% elif session.get("user_type") == "registered" %}
+        <span class="user-badge">Registered</span>
+        <span class="sep">|</span>
+        <span class="user-badge">Hi, {{ session.get("first_name", "User") }}</span>
+
+      {% else %}
+        <span class="user-badge">Guest</span>
+      {% endif %}
+    </div>
+
+  </div>
+
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-area">
+      {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="page-content">
+  {% block content %}{% endblock %}
+</div>
+
+
+  </main>
+</body>
+</html>

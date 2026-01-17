@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Cancel Flight</h1>
+
+  <div class="panel">
+    <div class="small-note"><b>Flight:</b> {{ flight.FLIGHT_NUM }}</div>
+    <div class="small-note"><b>Status:</b> {{ flight.FLIGHT_STATUS }}</div>
+    <div class="small-note"><b>Departure:</b> {{ flight.DEPARTURE_DATE }} {{ flight.DEPARTURE_TIME }}</div>
+    <div class="small-note"><b>Hours left:</b> {{ "%.1f"|format(hours_left) }}</div>
+
+    <hr class="sep-line">
+
+    {% if hours_left < 72 %}
+      <div class="flash error">
+        Cannot cancel this flight: departure is in less than 72 hours.
+      </div>
+      <a class="btn-link" href="{{ url_for('manager_flights') }}">Back</a>
+    {% else %}
+      <div class="small-note">
+        Cancelling now will set all ACTIVE orders to SYSTEM_CANCELLED and price to 0.
+      </div>
+
+      <form method="post">
+        <button class="btn-danger btn-small" type="submit">Confirm Cancel Flight</button>
+        <a class="btn-link btn-small" href="{{ url_for('manager_flights') }}">Go Back</a>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

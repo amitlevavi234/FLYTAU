@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <img class="logo" src="{{ url_for('static', filename='img/flytau_logo.png') }}" alt="FLYTAU Logo">
+  <h1>Guest Home</h1>
+
+  <div class="small-note">
+    Welcome, {{ session.get('first_name', 'Guest') }} (Guest)
+  </div>
+
+  <div class="panel">
+    <h2 class="sub">Search Flights</h2>
+    <p class="small-note">Enter filters and press Search to view available active flights.</p>
+
+    <form class="form-vertical" method="get" action="{{ url_for('flight_search') }}">
+      <button type="submit">Go to Flight Search</button>
+    </form>
+  </div>
+
+  <div class="links">
+    <a href="{{ url_for('logout') }}">Log out</a>
+  </div>
+</div>
+
+{% endblock %}

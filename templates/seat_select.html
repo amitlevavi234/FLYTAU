@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Select Seats</h1>
+
+  <div class="panel">
+    <div class="small-note">
+      Flight <b>{{ flight.FLIGHT_NUM }}</b> | {{ flight.ORIGIN }} → {{ flight.DESTINATION }} |
+      {{ flight.DEPARTURE_DATE }} {{ flight.DEPARTURE_TIME }}
+    </div>
+    <div class="small-note">
+      Passengers: <b id="passengersCount">{{ passengers }}</b>
+      <span class="sep">|</span>
+      Economy price: <b>{{ flight.ECONOMY_PRICE }}$</b> per seat
+      <span class="sep">|</span>
+      Business price: <b>{{ flight.BUSINESS_PRICE }}$</b> per seat
+    </div>
+  </div>
+
+  <form method="post" class="panel" id="seatForm">
+    <h2 class="sub">Seat Map</h2>
+    <p class="small-note">Choose exactly <b>{{ passengers }}</b> seats to continue.</p>
+
+    <div class="legend">
+      <div><span class="dot free"></span> Selected</div>
+      <div><span class="dot taken"></span> Taken</div>
+      <div><span class="dot econ"></span> Economy</div>
+      <div><span class="dot bus"></span> Business</div>
+    </div>
+
+    <div class="plane">
+      {% for r in row_numbers %}
+        <div class="plane-row">
+
+
+          <div class="side left">
+            {% for col in cols_left %}
+              {% set is_taken = (r, col) in occupied %}
+              {% set seat_class = rows_map[r].get(col) %}
+              {% if seat_class %}
+                {% set code = r|string + col %}
+                <label class="seat {% if seat_class == 'BUSINESS' %}seat-bus{% else %}seat-econ{% endif %} {% if is_taken %}seat-taken{% endif %}">
+                  <input type="checkbox" name="seat" value="{{ code }}"
+                         {% if is_taken %}disabled{% endif %}
+                         data-class="{{ seat_class }}"
+                         data-econ="{{ flight.ECONOMY_PRICE }}"
+                         data-bus="{{ flight.BUSINESS_PRICE }}">
+                  <span>{{ code }}</span>
+                </label>
+              {% else %}
+                <div class="seat empty"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="aisle">
+              <div class="rownum">{{ r }}</div>
+            </div>
+
+            {% if cols_mid and cols_mid|length > 0 %}
+              <div class="side mid">
+                {% for col in cols_mid %}
+                  {% set is_taken = (r, col) in occupied %}
+                  {% set seat_class = rows_map[r].get(col) %}
+                  {% if seat_class %}
+                    {% set code = r|string + col %}
+                    <label class="seat {% if seat_class == 'BUSINESS' %}seat-bus{% else %}seat-econ{% endif %} {% if is_taken %}seat-taken{% endif %}">
+                      <input type="checkbox" name="seat" value="{{ code }}"
+                             {% if is_taken %}disabled{% endif %}
+                             data-class="{{ seat_class }}"
+                             data-econ="{{ flight.ECONOMY_PRICE }}"
+                             data-bus="{{ flight.BUSINESS_PRICE }}">
+                      <span>{{ code }}</span>
+                    </label>
+                  {% else %}
+                    <div class="seat empty"></div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+
+              <div class="aisle">
+                <div class="rownum">{{ r }}</div>
+              </div>
+            {% else %}
+
+              <div class="aisle"></div>
+            {% endif %}
+
+
+
+          <div class="side right">
+            {% for col in cols_right %}
+              {% set is_taken = (r, col) in occupied %}
+              {% set seat_class = rows_map[r].get(col) %}
+              {% if seat_class %}
+                {% set code = r|string + col %}
+                <label class="seat {% if seat_class == 'BUSINESS' %}seat-bus{% else %}seat-econ{% endif %} {% if is_taken %}seat-taken{% endif %}">
+                  <input type="checkbox" name="seat" value="{{ code }}"
+                         {% if is_taken %}disabled{% endif %}
+                         data-class="{{ seat_class }}"
+                         data-econ="{{ flight.ECONOMY_PRICE }}"
+                         data-bus="{{ flight.BUSINESS_PRICE }}">
+                  <span>{{ code }}</span>
+                </label>
+              {% else %}
+                <div class="seat empty"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit">Continue to Checkout</button>
+  </form>
+
+  <div class="links">
+    <a href="{{ url_for('flight_search') }}">Back to Flight Search</a>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <div class="small-note">
+      After you click Continue, we’ll calculate the total price in checkout.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Manager Flight Board{% endblock %}
+
+{% block content %}
+<div class="card">
+
+
+  <h1>Flight Board</h1>
+
+  <!-- action buttons -->
+<div class="manager-actions">
+  <a class="btn-pill" href="{{ url_for('manager_new_flight_step1') }}">
+    <span class="ico ico-flight" aria-hidden="true"></span>
+    Add New Flight
+  </a>
+
+  <a class="btn-pill" href="{{ url_for('manager_add_staff') }}">
+    <span class="ico ico-employee" aria-hidden="true"></span>
+    Add Employee
+  </a>
+
+  <a class="btn-pill" href="{{ url_for('manager_add_aircraft') }}">
+    <span class="ico ico-aircraft" aria-hidden="true"></span>
+    Add Aircraft
+  </a>
+</div>
+
+
+
+
+
+  <div class="panel">
+    <form method="get" action="{{ url_for('manager_flights') }}">
+      <div class="filters">
+        <div>
+          <label>Date</label>
+          <input type="date" name="date" value="{{ f_date or '' }}">
+        </div>
+
+        <div>
+          <label>Status</label>
+          <select name="status">
+            <option value="" {{ 'selected' if not f_status else '' }}>All</option>
+            <option value="ACTIVE" {{ 'selected' if f_status=='ACTIVE' else '' }}>ACTIVE</option>
+            <option value="COMPLETED" {{ 'selected' if f_status=='COMPLETED' else '' }}>COMPLETED</option>
+            <option value="CANCELLED" {{ 'selected' if f_status=='CANCELLED' else '' }}>CANCELLED</option>
+            <option value="FULL" {% if f_status=="FULL" %}selected{% endif %}>FULL</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Origin</label>
+          <input list="cities" name="origin" value="{{ f_origin or '' }}" placeholder="e.g., TLV">
+        </div>
+
+        <div>
+        <label>Destination</label>
+        <div class="dest-row">
+          <input list="cities" name="destination" value="{{ f_dest or '' }}" placeholder="e.g., LHR">
+          <a class="btn-clear" href="{{ url_for('manager_flights') }}">Clear</a>
+        </div>
+      </div>
+
+
+        <datalist id="cities">
+          {% for c in cities %}
+            <option value="{{ c }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <div class="filter-actions">
+      <button class="btn-apply" type="submit">Apply</button>
+    </div>
+
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table table-manager">
+      <thead>
+        <tr>
+          <th>Flight #</th>
+          <th>Route</th>
+          <th>Departure</th>
+          <th>Arrival</th>
+          <th>Aircraft</th>
+          <th>Status</th>
+          <th>Prices</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for f in flights %}
+        <tr class="row-{{ f.FLIGHT_STATUS|lower }}">
+          <td>{{ f.FLIGHT_NUM }}</td>
+          <td>{{ f.ORIGIN }} → {{ f.DESTINATION }}</td>
+          <td>{{ f.DEPARTURE_DATE }}<br>{{ f.DEPARTURE_TIME }}</td>
+          <td>{{ f.ARRIVAL_DATE }}<br>{{ f.ARRIVAL_TIME }}</td>
+          <td>{{ f.AIRCRAFT_ID }} ({{ f.AIRCRAFT_SIZE }})</td>
+          <td><span class="badge badge-{{ f.FLIGHT_STATUS|lower }}">{{ f.FLIGHT_STATUS }}</span></td>
+          <td>
+            Eco: {{ "%.2f"|format(f.ECONOMY_PRICE or 0) }}$
+            {% if (f.BUSINESS_PRICE or 0) > 0 %}
+              <br>Bus: {{ "%.2f"|format(f.BUSINESS_PRICE or 0) }}$
+            {% endif %}
+          </td>
+          <td>
+            {% if f.FLIGHT_STATUS == 'ACTIVE' %}
+              <a class="btn-cancel" href="{{ url_for('manager_cancel_flight', flight_num=f.FLIGHT_NUM) }}">Cancel Flight</a>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

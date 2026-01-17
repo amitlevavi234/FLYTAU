@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Cancel Order</h1>
+
+  <div class="panel">
+    <div class="small-note"><b>Order ID:</b> {{ order.O_ID }}</div>
+    <div class="small-note"><b>Flight:</b> {{ order.FLIGHT_NUM }}</div>
+    <div class="small-note"><b>Current Price:</b> {{ "%.2f"|format(order.ORDER_PRICE) }}$</div>
+
+    <hr class="sep-line">
+
+    <div class="small-note">
+      <b>Cancellation Fee:</b> {{ "%.2f"|format(fee) }}$
+    </div>
+
+  </div>
+
+  <form method="post">
+  <button class="btn-danger btn-small" type="submit">
+    Continue Anyway
+  </button>
+
+  <a class="btn-link btn-small" href="{{ url_for('my_orders') }}">
+    Go Back
+  </a>
+</form>
+
+</div>
+
+{% endblock %}
+

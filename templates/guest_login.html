@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+
+  <h1>Guest Entry</h1>
+
+  <form class="form-vertical" method="post" action="{{ url_for('guest_entry') }}">
+
+    <label for="g_email">Email</label>
+    <input id="g_email" type="email" name="email" required
+           placeholder="example@mail.com">
+
+    <label for="g_first">First Name (English letters only)</label>
+    <input id="g_first" type="text" name="first_name" required
+           placeholder="John">
+
+    <label for="g_last">Last Name (English letters only)</label>
+    <input id="g_last" type="text" name="last_name" required
+           placeholder="Smith">
+
+    <label for="g_phones">Phone Numbers (digits only, 9–10 digits, one per line)</label>
+    <textarea id="g_phones" name="phones" rows="3" required
+              placeholder="0501234567&#10;0529876543"></textarea>
+
+    <button type="submit">Continue as Guest</button>
+  </form>
+
+  <div class="links">
+    <a href="{{ url_for('login') }}">Back to Main Login</a>
+  </div>
+</div>
+
+{% endblock %}

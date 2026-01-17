@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h1>Flight Summary</h1>
+
+  <div class="panel">
+    <div class="small-note"><b>Route:</b> {{ nf.origin }} → {{ nf.destination }}</div>
+    <div class="small-note"><b>Departure:</b> {{ nf.departure_date }} {{ nf.departure_time }}</div>
+    <div class="small-note"><b>Arrival:</b> {{ nf.arrival_date }} {{ nf.arrival_time }}</div>
+    <div class="small-note"><b>Aircraft:</b> {{ nf.aircraft_id }}</div>
+    <div class="small-note"><b>Duration:</b> {{ nf.duration }}</div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h2 class="sub">Crew</h2>
+    <div class="small-note"><b>Attendants ({{ nf.attendants|length }}):</b> {{ nf.attendants|join(", ") }}</div>
+    <div class="small-note"><b>Pilots ({{ nf.pilots|length }}):</b> {{ nf.pilots|join(", ") }}</div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h2 class="sub">Pricing</h2>
+    <div class="small-note"><b>Economy:</b> {{ "%.2f"|format(nf.economy_price) }}$</div>
+    <div class="small-note"><b>Business:</b> {{ "%.2f"|format(nf.business_price) }}$</div>
+  </div>
+
+  <form method="post" class="panel" style="margin-top:16px;">
+    <button type="submit">Add Flight</button>
+  </form>
+</div>
+
+{% endblock %}

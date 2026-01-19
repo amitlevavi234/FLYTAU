@@ -17,7 +17,6 @@ from utils import (
     dt_from_date_time,
     next_order_id,
     is_valid_hebrew_name,
-    crew_week_rule_ok,
     create_seats_for_aircraft,
     update_flight_full_status,
     auto_complete_flights,
@@ -1321,9 +1320,27 @@ def manager_new_flight_step2_aircraft():
         flash("Session expired. Please start again.", "error")
         return redirect(url_for("manager_new_flight_step1"))
 
-    nf["aircraft_id"] = aircraft_id
-    session["new_flight"] = nf
-    session.modified = True
+    cur = None
+    db = None
+    try:
+        db = get_db_connection()
+        cur = db.cursor(dictionary=True)
+        cur.execute("SELECT SIZE FROM AIRCRAFT WHERE AIRCRAFT_ID=%s LIMIT 1", (aircraft_id,))
+        row = cur.fetchone()
+        if not row:
+            flash("Aircraft not found.", "error")
+            return redirect(url_for("manager_new_flight_step1"))
+
+        nf["aircraft_id"] = aircraft_id
+        nf["aircraft_size"] = row["SIZE"]
+
+        session["new_flight"] = nf
+        session.modified = True
+    finally:
+        if cur:
+            cur.close()
+        if db:
+            db.close()
 
     flash(f"Aircraft selected: {aircraft_id}. Next step will be attendants.", "success")
     return redirect(url_for("manager_new_flight_step3_attendants"))
@@ -1343,13 +1360,14 @@ def manager_new_flight_step3_attendants():
         flash("Session expired. Please start again.", "error")
         return redirect(url_for("manager_new_flight_step1"))
 
-    is_long = bool(nf.get("is_long"))
     aircraft_id = nf["aircraft_id"]
+    aircraft_size = (nf.get("aircraft_size") or "").upper()
+
+    is_big = (aircraft_size == "BIG")
+    required_att = 6 if is_big else 3
 
     dep_dt = combine_date_time(nf["departure_date"], nf["departure_time"])
     arr_dt = combine_date_time(nf["arrival_date"], nf["arrival_time"])
-
-    required_att = 6 if is_long else 3
 
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
@@ -1359,11 +1377,11 @@ def manager_new_flight_step3_attendants():
         if len(selected_ids) != required_att:
             flash(f"You must select exactly {required_att} attendants.", "error")
 
-
-            if is_long:
+            if is_big:
                 cur.execute("SELECT * FROM FLIGHT_ATTENDANT WHERE IS_QUALIFIED=1 ORDER BY ID_A")
             else:
                 cur.execute("SELECT * FROM FLIGHT_ATTENDANT ORDER BY ID_A")
+
             attendants = cur.fetchall()
 
             available = []
@@ -1383,7 +1401,7 @@ def manager_new_flight_step3_attendants():
                 flights = cur.fetchall()
 
                 ok = four_day_availability_ok(flights, dep_dt, arr_dt, nf["origin"], nf["destination"])
-                if ok and crew_week_rule_ok(cur, 'attendant', aid, dep_dt, nf['origin']):
+                if ok:
                     available.append(a)
 
             cur.close();
@@ -1404,11 +1422,11 @@ def manager_new_flight_step3_attendants():
         cur.close(); db.close()
         return redirect(url_for("manager_new_flight_step4_pilots"))
 
-
-    if is_long:
+    if is_big:
         cur.execute("SELECT * FROM FLIGHT_ATTENDANT WHERE IS_QUALIFIED=1 ORDER BY ID_A")
     else:
         cur.execute("SELECT * FROM FLIGHT_ATTENDANT ORDER BY ID_A")
+
     attendants = cur.fetchall()
 
     available = []
@@ -1434,7 +1452,7 @@ def manager_new_flight_step3_attendants():
             nf["origin"], nf["destination"]
         )
 
-        if ok and crew_week_rule_ok(cur, 'attendant', aid, dep_dt, nf['origin']):
+        if ok:
             available.append(a)
 
     cur.close(); db.close()
@@ -1462,21 +1480,24 @@ def manager_new_flight_step4_pilots():
         flash("Session expired. Please start again.", "error")
         return redirect(url_for("manager_new_flight_step1"))
 
-    is_long = bool(nf.get("is_long"))
+    aircraft_size = (nf.get("aircraft_size") or "").upper()
+    is_big = (aircraft_size == "BIG")
+
+    required_p = 3 if is_big else 2
+
     dep_dt = combine_date_time(nf["departure_date"], nf["departure_time"])
     arr_dt = combine_date_time(nf["arrival_date"], nf["arrival_time"])
-
-    required_p = 3 if is_long else 2
 
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
 
   
     def get_available_pilots():
-        if is_long:
+        if is_big:
             cur.execute("SELECT * FROM PILOT WHERE IS_QUALIFIED=1 ORDER BY ID_P")
         else:
             cur.execute("SELECT * FROM PILOT ORDER BY ID_P")
+
         pilots = cur.fetchall()
 
         available = []
@@ -1500,7 +1521,7 @@ def manager_new_flight_step4_pilots():
                 nf["origin"], nf["destination"]
             )
 
-            if ok and crew_week_rule_ok(cur, "pilot", pid, dep_dt, nf["origin"]):
+            if ok:
                 available.append(p)
 
         return available
@@ -1559,10 +1580,10 @@ def manager_new_flight_step5_pricing():
         flash("Session expired. Please start again.", "error")
         return redirect(url_for("manager_new_flight_step1"))
 
-    is_long = bool(nf.get("is_long"))
+    is_big = ((nf.get("aircraft_size") or "").upper() == "BIG")
 
     if request.method == "GET":
-        return render_template("manager_new_flight_step5_pricing.html", nf=nf, is_long=is_long)
+        return render_template("manager_new_flight_step5_pricing.html", nf=nf, is_big=is_big)
 
     econ_raw = request.form.get("economy_price", "").strip()
     bus_raw = request.form.get("business_price", "").strip()
@@ -1575,7 +1596,7 @@ def manager_new_flight_step5_pricing():
         flash("Economy price must be a positive number.", "error")
         return redirect(url_for("manager_new_flight_step5_pricing"))
 
-    if is_long:
+    if is_big:
         try:
             bus_price = float(bus_raw)
             if bus_price <= 0:
@@ -2338,5 +2359,17 @@ def logout():
     session.clear()
     return redirect(url_for("flight_search"))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("error.html", code=404), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template("error.html", code=500), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+

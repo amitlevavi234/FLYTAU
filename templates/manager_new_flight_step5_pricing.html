@@ -18,12 +18,13 @@
     <label>Economy Price </label>
     <input type="number" step="0.01" name="economy_price" required placeholder="e.g. 799.00$">
 
-    {% if is_long %}
-      <label>Business Price </label>
-      <input type="number" step="0.01" name="business_price" required placeholder="e.g. 1999.00$">
-    {% else %}
-      <div class="small-note">Business class is not available for SMALL aircraft (set automatically to 0).</div>
-    {% endif %}
+    {% if is_big %}
+        <label>Business Price </label>
+        <input type="number" step="0.01" name="business_price" required placeholder="e.g. 1999.00$">
+      {% else %}
+        <div class="small-note">Business class is not available for SMALL aircraft (set automatically to 0).</div>
+      {% endif %}
+
 
     <button type="submit">Next</button>
   </form>

@@ -455,35 +455,53 @@ def auto_complete_flights():
 
 FOUR_DAYS = timedelta(days=4)
 
-
 def four_day_availability_ok(existing_flights, cand_dep_dt, cand_arr_dt, cand_origin, cand_dest):
     """
-    Checks the “4-day rule” for scheduling.
-    Blocks overlaps, and also blocks flights too close in time if the route chain does not make sense.
+    4-day chaining rule (nearest flights only):
+    - No overlap allowed with ANY existing flight.
+    - Find the nearest flight BEFORE the candidate (by arrival time) within 4 days:
+        its destination must equal cand_origin.
+    - Find the nearest flight AFTER the candidate (by departure time) within 4 days:
+        its origin must equal cand_dest.
+    This fixes chain cases like A->B, B->A, A->C (the nearest-before is B->A).
     """
+
+    for f in existing_flights:
+        f_dep = combine_date_time(f["DEPARTURE_DATE"], f["DEPARTURE_TIME"])
+        f_arr = combine_date_time(f["ARRIVAL_DATE"], f["ARRIVAL_TIME"])
+        if overlaps(cand_dep_dt, cand_arr_dt, f_dep, f_arr):
+            return False
+
+    nearest_before = None
+    nearest_before_arr = None
+
+    nearest_after = None
+    nearest_after_dep = None
+
     for f in existing_flights:
         f_dep = combine_date_time(f["DEPARTURE_DATE"], f["DEPARTURE_TIME"])
         f_arr = combine_date_time(f["ARRIVAL_DATE"], f["ARRIVAL_TIME"])
 
+        if f_arr <= cand_dep_dt:
+            if (cand_dep_dt - f_arr) <= FOUR_DAYS:
+                if nearest_before_arr is None or f_arr > nearest_before_arr:
+                    nearest_before = f
+                    nearest_before_arr = f_arr
 
-        if overlaps(cand_dep_dt, cand_arr_dt, f_dep, f_arr):
+        elif f_dep >= cand_arr_dt:
+            if (f_dep - cand_arr_dt) <= FOUR_DAYS:
+                if nearest_after_dep is None or f_dep < nearest_after_dep:
+                    nearest_after = f
+                    nearest_after_dep = f_dep
+
+    if nearest_before is not None:
+        if nearest_before["DESTINATION"] != cand_origin:
             return False
 
+    if nearest_after is not None:
 
-        if abs((f_dep - cand_dep_dt).total_seconds()) <= FOUR_DAYS.total_seconds():
-
-
-            if f_arr <= cand_dep_dt:
-
-                if f["DESTINATION"] != cand_origin:
-                    return False
-
-
-            elif f_dep >= cand_arr_dt:
-
-                if f["ORIGIN"] != cand_dest:
-                    return False
-            else:
-                return False
+        if nearest_after["ORIGIN"] != cand_dest:
+            return False
 
     return True
+
